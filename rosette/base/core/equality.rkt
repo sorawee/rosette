@@ -1,6 +1,7 @@
 #lang racket
 
-(require "term.rkt" "union.rkt" "bool.rkt")
+(require "term.rkt" "union.rkt" "bool.rkt"
+         "../util/parameter.rkt")
 
 (provide @eq?     ; (-> any/c any/c @boolean?)
          @equal?) ; (-> any/c any/c @boolean?)

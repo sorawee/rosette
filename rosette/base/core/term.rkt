@@ -2,7 +2,7 @@
 
 (require racket/syntax (for-syntax racket racket/syntax) racket/generic
          "type.rkt" "reporter.rkt"
-         "../util/parameter.rkt")
+         (only-in "../util/parameter.rkt" make-parameter))
 
 (provide
  term-cache clear-terms!
