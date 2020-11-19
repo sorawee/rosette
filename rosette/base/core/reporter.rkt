@@ -1,6 +1,7 @@
 #lang racket
 
 (provide (all-defined-out))
+(require "../util/parameter.rkt")
 
 ; The reporter is called when "interesting"
 ; events happen during symbolic execution; for example,

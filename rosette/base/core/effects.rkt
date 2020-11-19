@@ -2,7 +2,9 @@
 
 (require 
  (for-syntax racket)
- "../util/ord-dict.rkt" "bool.rkt" "reporter.rkt")
+ "../util/ord-dict.rkt"
+ "../util/parameter.rkt"
+ "bool.rkt" "reporter.rkt")
 
 (provide speculate speculate* apply! location=? (rename-out [state-val location-final-value]))
 

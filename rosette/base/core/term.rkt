@@ -1,7 +1,8 @@
 #lang racket
 
 (require racket/syntax (for-syntax racket racket/syntax) racket/generic
-         "type.rkt" "reporter.rkt")
+         "type.rkt" "reporter.rkt"
+         "../util/parameter.rkt")
 
 (provide
  term-cache clear-terms!

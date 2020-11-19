@@ -1,6 +1,7 @@
 #lang racket
 
 (provide current-oracle oracle? (rename-out [make-oracle oracle]))
+(require "../util/parameter.rkt")
 
 #|--------------current state parameters--------------|#
 

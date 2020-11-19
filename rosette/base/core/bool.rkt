@@ -1,6 +1,7 @@
 #lang racket
 
-(require "term.rkt" "union.rkt" "exn.rkt")
+(require "term.rkt" "union.rkt" "exn.rkt"
+         "../util/parameter.rkt")
 
 (provide @boolean? @false? 
          ! && || => <=> @! @&& @|| @=> @<=> @exists @forall
