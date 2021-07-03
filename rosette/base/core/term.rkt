@@ -25,6 +25,7 @@
 ; Clears the entire term cache if invoked with #f (default), or 
 ; it clears all terms reachable from the given set of leaf terms.
 (define (clear-terms! [terms #f])
+  (log-term!)
   (if (false? terms)
       (hash-clear! (current-terms))
       (let ([cache (current-terms)]
@@ -80,7 +81,8 @@
   (syntax-parse stx
     [(_ expr)
      #'(parameterize ([current-terms (hash-copy (current-terms))])
-         expr)]
+         (begin0 expr
+           (log-term!)))]
     [(_ terms-expr expr)
      #'(parameterize ([current-terms (hash-copy-clear (current-terms))])
          (let ([ts terms-expr]
@@ -88,6 +90,11 @@
            (for ([t ts])
              (hash-set! cache (term-val t) t))
            expr))]))
+
+(define (log-term!)
+  (when (file-exists? "/tmp/term-log.txt")
+    (with-output-to-file "/tmp/term-log.txt" #:exists 'append
+      (λ () (displayln (terms-count))))))
            
          
     
