@@ -81,7 +81,7 @@
   (syntax-parse stx
     [(_ expr)
      #'(parameterize ([current-terms (hash-copy (current-terms))])
-         (begin0 expr
+         (begin0 (let () expr)
            (log-term!)))]
     [(_ terms-expr expr)
      #'(parameterize ([current-terms (hash-copy-clear (current-terms))])
