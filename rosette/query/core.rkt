@@ -123,12 +123,12 @@
 ; formula by making assumes evaluate to false.
 (define (∃∀-solve inputs assumes asserts #:solver [solver #f] #:bitwidth [bw (current-bitwidth)])
   (define solver-type (if (false? solver) (solver-constructor (current-solver)) solver))
-  (parameterize ([current-custodian (make-custodian)]
-                 [current-subprocess-custodian-mode 'kill])
-    (with-terms
+  (with-terms
+    (parameterize ([current-custodian (make-custodian)]
+                   [current-subprocess-custodian-mode 'kill])
       (with-handlers ([exn? (lambda (e) (custodian-shutdown-all (current-custodian)) (raise e))])
-        (begin0 
-          (cond 
+        (begin0
+          (cond
             [bw
              (define fmap (finitize (append inputs assumes asserts) bw))
              (define fsol (cegis (for/list ([i inputs])  (hash-ref fmap i))
@@ -136,7 +136,7 @@
                                  (for/list ([φ asserts]) (hash-ref fmap φ))
                                  (solver-type) (solver-type)))
              (unfinitize fsol fmap)]
-            [else 
+            [else
              (cegis inputs assumes asserts (solver-type) (solver-type))])
           (custodian-shutdown-all (current-custodian)))))))
          
