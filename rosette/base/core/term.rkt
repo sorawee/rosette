@@ -90,7 +90,9 @@
                [cache (current-terms)])
            (for ([t ts])
              (hash-set! cache (term-val t) t))
-           expr))]))
+           (define init (terms-count))
+           (begin0 (let () expr)
+             (log-term! (- (terms-count) init)))))]))
 
 (define (log-term! x)
   (when (file-exists? "/tmp/term-log.txt")
