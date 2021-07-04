@@ -87,11 +87,11 @@
   (for ([rts (in-list (unbox discovered-tests))])
     (match-define (rosette-test-suite feats ts tc bw o) rts)
     (when (and (not (null? feats)) (for/and ([f feats]) (member f features)))
-      (parameterize ([term-cache (hash-copy tc)]
-                     [current-bitwidth bw]
+      (with-terms tc
+      (parameterize ([current-bitwidth bw]
                      [current-oracle (oracle o)])
         (set-add! executed-tests rts)
-        (time (run-tests ts))))))
+        (time (run-tests ts)))))))
 
 ; The same as run-all-discovered-tests, but only for tests
 ; that require no features.
@@ -99,11 +99,11 @@
   (for ([rts (in-list (unbox discovered-tests))])
     (match-define (rosette-test-suite feats ts tc bw o) rts)
     (when (null? feats)
-      (parameterize ([term-cache (hash-copy tc)]
-                     [current-bitwidth bw]
+      (with-terms tc
+      (parameterize ([current-bitwidth bw]
                      [current-oracle (oracle o)])
         (set-add! executed-tests rts)
-        (time (run-tests ts))))))
+        (time (run-tests ts)))))))
 
 
 ; Check that every discovered test was executed at least once

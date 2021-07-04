@@ -63,8 +63,8 @@
   (begin0  
     (with-handlers ([exn? (lambda (e) (solver-shutdown solver) (raise e))])
       (cond 
-        [bw 
-         (parameterize ([term-cache (hash-copy (term-cache))])
+        [bw
+         (with-terms
            (define fmap (finitize (append φs mins maxs) bw))
            (solver-assert solver (for/list ([φ φs]) (hash-ref fmap φ)))
            (solver-minimize solver (for/list ([m mins]) (hash-ref fmap m)))
@@ -156,7 +156,7 @@
     (with-handlers ([exn? (lambda (e) (solver-shutdown solver) (raise e))])
       (cond 
         [bw 
-         (parameterize ([term-cache (hash-copy (term-cache))])
+         (with-terms
            (define fmap (finitize φs bw))
            (solver-assert solver (for/list ([φ φs]) (hash-ref fmap φ)))
            (define sol (solver-debug solver)) 
@@ -193,9 +193,9 @@
 ; formula by making assumes evaluate to false.
 (define (∃∀-solve inputs assumes asserts #:solver [solver #f] #:bitwidth [bw (current-bitwidth)])
   (define solver-type (if (false? solver) (solver-constructor (current-solver)) solver))
+  (with-terms
   (parameterize ([current-custodian (make-custodian)]
-                 [current-subprocess-custodian-mode 'kill]
-                 [term-cache (hash-copy (term-cache))])
+                 [current-subprocess-custodian-mode 'kill])
     (with-handlers ([exn? (lambda (e) (custodian-shutdown-all (current-custodian)) (raise e))])
       (begin0 
         (cond 
@@ -208,7 +208,7 @@
            (unfinitize fsol fmap)]
           [else 
            (cegis inputs assumes asserts (solver-type) (solver-type))])
-        (custodian-shutdown-all (current-custodian))))))
+        (custodian-shutdown-all (current-custodian)))))))
          
 
 ; Uses the given solvers to solve the exists-forall problem 
