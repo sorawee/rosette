@@ -49,6 +49,7 @@
      term? constant? expression? 
      term expression constant term-type
      term=? term->datum clear-terms! term-cache
+     with-terms
      union? union union-contents union-guards union-values
      union-filter in-union in-union* in-union-guards in-union-values
      ; adt/box.rkt

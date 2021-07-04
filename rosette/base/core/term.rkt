@@ -1,10 +1,12 @@
 #lang racket
 
 (require racket/syntax (for-syntax racket racket/syntax) racket/generic
-         "type.rkt" "reporter.rkt")
+         "type.rkt" "reporter.rkt"
+         syntax/parse/define)
 
 (provide
  term-cache clear-terms!
+ with-terms
  term? constant? expression? 
  (rename-out [a-term term] [an-expression expression] [a-constant constant]) 
  term-type term<? sublist? @app
@@ -24,6 +26,7 @@
 ; Clears the entire term-cache if invoked with #f (default), or 
 ; it clears all terms reachable from the given set of leaf terms.
 (define (clear-terms! [terms #f])
+  (log-term! (terms-count))
   (if (false? terms)
       (hash-clear! (term-cache))
       (let ([cache (term-cache)]
@@ -40,6 +43,26 @@
               (set-add! evicted t))
             (loop))))))
 
+(define (log-term! x)
+  (when (file-exists? "/tmp/term-log.txt")
+    (with-output-to-file "/tmp/term-log.txt" #:exists 'append
+      (λ () (displayln x)))))
+
+(define (terms-count)
+  (hash-count (term-cache)))
+
+(define-syntax (with-terms stx)
+  (syntax-parse stx
+    [(_ expr)
+     #'(parameterize ([term-cache (hash-copy (term-cache))])
+         (define init (terms-count))
+         (begin0 (let () expr)
+           (log-term! (- (terms-count) init))))]
+    [(_ terms-expr expr)
+     #'(parameterize ([term-cache (hash-copy terms-expr)])
+         (define init (terms-count))
+         (begin0 (let () expr)
+           (log-term! (- (terms-count) init))))]))
 #|-----------------------------------------------------------------------------------|#
 ; The term structure defines a symbolic value, which can be a variable or an expression.
 ; The val field of a constant is its unique identifier, and it can be anything.  The val
