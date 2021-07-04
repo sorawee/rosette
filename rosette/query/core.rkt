@@ -2,7 +2,7 @@
 
 (require 
   "eval.rkt" "finitize.rkt"
-  (only-in "../base/core/term.rkt" constant? term-type get-type term? term-cache clear-terms! term<? solvable-default)
+  (only-in "../base/core/term.rkt" constant? term-type get-type term? term-cache clear-terms! term<? solvable-default with-terms)
   (only-in "../base/core/equality.rkt" @equal?)
   (only-in "../base/core/bool.rkt" ! || && => with-asserts-only @boolean?)
   (only-in "../base/core/real.rkt" @integer? @real?)
@@ -65,11 +65,12 @@
       (cond 
         [bw
          (with-terms
-           (define fmap (finitize (append φs mins maxs) bw))
-           (solver-assert solver (for/list ([φ φs]) (hash-ref fmap φ)))
-           (solver-minimize solver (for/list ([m mins]) (hash-ref fmap m)))
-           (solver-maximize solver (for/list ([m maxs]) (hash-ref fmap m)))
-           (unfinitize (solver-check solver) fmap))]
+           (let ()
+             (define fmap (finitize (append φs mins maxs) bw))
+             (solver-assert solver (for/list ([φ φs]) (hash-ref fmap φ)))
+             (solver-minimize solver (for/list ([m mins]) (hash-ref fmap m)))
+             (solver-maximize solver (for/list ([m maxs]) (hash-ref fmap m)))
+             (unfinitize (solver-check solver) fmap)))]
         [else 
          (solver-assert solver φs)
          (solver-minimize solver mins)
@@ -157,10 +158,11 @@
       (cond 
         [bw 
          (with-terms
-           (define fmap (finitize φs bw))
-           (solver-assert solver (for/list ([φ φs]) (hash-ref fmap φ)))
-           (define sol (solver-debug solver)) 
-           (unfinitize (if muc? (minimize-core solver sol) sol) fmap))]
+           (let ()
+             (define fmap (finitize φs bw))
+             (solver-assert solver (for/list ([φ φs]) (hash-ref fmap φ)))
+             (define sol (solver-debug solver))
+             (unfinitize (if muc? (minimize-core solver sol) sol) fmap)))]
         [else 
          (solver-assert solver φs)
          (define sol (solver-debug solver))

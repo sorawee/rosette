@@ -5,7 +5,7 @@
 (require (only-in rosette 
                   clear-state!
                   current-bitwidth term-cache current-oracle oracle with-asserts-only
-                  solution? sat? unsat?))
+                  solution? sat? unsat? with-terms))
 (require (for-syntax syntax/parse))
 
 (provide run-all-tests test-groups test-suite+
