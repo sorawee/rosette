@@ -64,10 +64,10 @@
                     #:before (thunk (printf "~a\n" name) (before))
                     #:after after
                     (with-asserts-only
+                      (with-terms
                       (parameterize ([current-bitwidth (current-bitwidth)]
-                                     [term-cache (hash-copy (term-cache))]
                                      [current-oracle (oracle (current-oracle))])
-                        test ...)))])
+                        test ...))))])
            (let ([rts (rosette-test-suite features ts (hash-copy (term-cache)) (current-bitwidth) (oracle (current-oracle)))])
              (set-box! discovered-tests (append (unbox discovered-tests) (list rts)))
              ts)))]))
