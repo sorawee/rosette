@@ -7,14 +7,6 @@
 (provide solve verify synthesize optimize
          current-solver (rename-out [∃-solve+ solve+]))
 
-(define-syntax-rule (log-time! e)
-  (let ()
-    (match-define-values (vals _ real _) (time-apply (λ () e) '()))
-    (when (file-exists? "/tmp/solving-time")
-      (with-output-to-file "/tmp/solving-time" #:exists 'append
-        (λ () (displayln real))))
-    (apply values vals)))
-
 ; The solve query evaluates the given expression, gathers all 
 ; assertions generated during the evaluation, 
 ; and searches for a model (a binding from symbolic 
@@ -23,7 +15,7 @@
 ; this means that there is no solution under the k-bit semantics that 
 ; corresponds to a solution under the infinite precision semantics.  
 (define-syntax-rule (solve expr)
-  (log-time! (∃-solve `(,@(asserts) ,@(eval/asserts (thunk expr))))))
+  (∃-solve `(,@(asserts) ,@(eval/asserts (thunk expr)))))
 
 ; The verify query evaluates the given forms, gathers all 
 ; assumptions and assertions generated during the evaluation, 
@@ -36,9 +28,9 @@
 (define-syntax verify
   (syntax-rules ()
     [(_ #:assume pre #:guarantee post)
-     (log-time! (∃-solve `(,@(asserts)
+     (∃-solve `(,@(asserts)
                 ,@(eval/asserts (thunk pre)) 
-                ,(apply || (map ! (eval/asserts (thunk post)))))))]
+                ,(apply || (map ! (eval/asserts (thunk post))))))]
     [(_ #:guarantee post) (verify #:assume #t #:guarantee post)]
     [(_ post) (verify #:assume #t #:guarantee post)]))
 
@@ -50,9 +42,9 @@
 (define-syntax synthesize 
   (syntax-rules (synthesize)
     [(_ #:forall inputs #:assume pre #:guarantee post)
-     (log-time! (∃∀-solve (symbolics inputs)
+     (∃∀-solve (symbolics inputs) 
                `(,@(asserts) ,@(eval/asserts (thunk pre))) 
-               (eval/asserts (thunk post))))]
+               (eval/asserts (thunk post)))]    
     [(_ #:forall inputs #:guarantee post)
      (synthesize #:forall inputs #:assume #t #:guarantee post)]
     [(_ inputs post)
@@ -69,9 +61,9 @@
 (define-syntax optimize
   (syntax-rules ()
     [(_ kw opt #:guarantee form)
-     (log-time! (let ([obj opt]) ; evaluate objective first to push its assertions onto the stack
-       (∃-solve `(,@(asserts) ,@(eval/asserts (thunk form))) kw obj)))]
+     (let ([obj opt]) ; evaluate objective first to push its assertions onto the stack
+       (∃-solve `(,@(asserts) ,@(eval/asserts (thunk form))) kw obj))]
     [(_ kw1 opt1 kw2 opt2 #:guarantee form)
-     (log-time! (let ([obj1 opt1]
+     (let ([obj1 opt1]
            [obj2 opt2]) ; evaluate objectives first to push their assertions onto the stack
-       (∃-solve `(,@(asserts) ,@(eval/asserts (thunk form))) kw1 obj1 kw2 obj2)))]))
+       (∃-solve `(,@(asserts) ,@(eval/asserts (thunk form))) kw1 obj1 kw2 obj2))]))
