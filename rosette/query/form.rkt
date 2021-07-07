@@ -9,6 +9,14 @@
 (provide solve verify synthesize optimize
          current-solver (rename-out [∃-solve+ solve+]))
 
+(define-syntax-parse-rule (log-time! e)
+  (let ()
+    (match-define-values (vals _ real _) (time-apply (λ () e) '()))
+    (when (file-exists? "/tmp/solving-time")
+      (with-output-to-file "/tmp/solving-time" #:exists 'append
+        (λ () (displayln real))))
+    (apply values vals)))
+
 (define (pre)
   (define s (vc))
   (list (vc-assumes s) (vc-asserts s)))
@@ -24,8 +32,8 @@
 ; call to solve. The solve query creates its own vc context, so
 ; (vc) is unchanged after solve returns.
 (define-syntax-rule (solve expr)
-  (let ([post (query-vc expr)])
-    (∃-solve `(,@(pre) ,(vc-assumes post) ,(vc-asserts post)))))
+  (log-time! (let ([post (query-vc expr)])
+    (∃-solve `(,@(pre) ,(vc-assumes post) ,(vc-asserts post))))))
                
 
 ; The (verify expr) query evaluates expr, gathers all 
@@ -38,8 +46,8 @@
 ; query  creates its own vc context, so (vc) is unchanged after
 ; verify returns.
 (define-syntax-rule (verify expr)
-  (let ([post (query-vc expr)])
-    (∃-solve `(,@(pre) ,(vc-assumes post) ,(! (vc-asserts post))))))
+  (log-time! (let ([post (query-vc expr)])
+    (∃-solve `(,@(pre) ,(vc-assumes post) ,(! (vc-asserts post)))))))
 
 ; The (synthesize vars expr) query evaluates the given forms, gathers all  
 ; assumptions and assertions generated during the evaluation, 
@@ -55,9 +63,9 @@
 (define-syntax synthesize 
   (syntax-rules (synthesize)
     [(_ #:forall inputs #:guarantee expr)
-     (let ([vars (symbolics inputs)] ; evaluate inputs first to add their spec to (vc)
+     (log-time! (let ([vars (symbolics inputs)] ; evaluate inputs first to add their spec to (vc)
            [post (query-vc expr)])
-       (∃∀-solve vars `(,@(pre) ,(vc-assumes post)) `(,(vc-asserts post))))]
+       (∃∀-solve vars `(,@(pre) ,(vc-assumes post)) `(,(vc-asserts post)))))]
     [(_ inputs expr)
      (synthesize #:forall inputs #:guarantee expr)]))
 
@@ -73,13 +81,13 @@
 ; are not added to (vc) after optimize returns.
 (define-syntax-parser optimize
   [(_ {~and kw {~or* #:minimize #:maximize}} opt #:guarantee expr)
-   #'(let ([obj opt]    ; evaluate objective first to add its spec to (vc)
+   #'(log-time! (let ([obj opt]    ; evaluate objective first to add its spec to (vc)
            [post (query-vc expr)])
-       (∃-solve `(,@(pre) ,(vc-assumes post) ,(vc-asserts post)) kw obj))]
+       (∃-solve `(,@(pre) ,(vc-assumes post) ,(vc-asserts post)) kw obj)))]
   [(_ {~and kw1 {~or* #:minimize #:maximize}} opt1
       {~and kw2 {~or* #:minimize #:maximize}} opt2
       #:guarantee expr)
-   #'(let ([obj1 opt1]  ; evaluate objectives first to add their spec to (vc)
+   #'(log-time! (let ([obj1 opt1]  ; evaluate objectives first to add their spec to (vc)
            [obj2 opt2]
            [post (query-vc expr)])
-       (∃-solve `(,@(pre) ,(vc-assumes post) ,(vc-asserts post)) kw1 obj1 kw2 obj2))])
+       (∃-solve `(,@(pre) ,(vc-assumes post) ,(vc-asserts post)) kw1 obj1 kw2 obj2)))])
